@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Get Coins - Claim coins</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* TikTok dual-dot spinning loader */
+    .tt-loader {
+      display: inline-block;
+      position: relative;
+      width: 54px;
+      height: 32px;
+    }
+    .tt-dot {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      top: 5px;
+      animation: ttSpin 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite alternate;
+    }
+    .tt-dot-cyan {
+      background-color: #25F4EE;
+      left: 6px;
+      z-index: 1;
+    }
+    .tt-dot-pink {
+      background-color: #FE2C55;
+      right: 6px;
+      z-index: 2;
+    }
+    @keyframes ttSpin {
+      0% {
+        transform: scale(0.85);
+      }
+      50% {
+        transform: scale(1.15) translateX(12px);
+      }
+      100% {
+        transform: scale(0.9) translateX(-12px);
+      }
+    }
+
+    /* Custom keypad press state */
+    .keypad-btn:active {
+      background-color: #e5e7eb;
+      transform: scale(0.96);
+    }
+    
+    /* Smooth modal transition */
+    .sheet-enter {
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sheet-enter-active {
+      transform: translateY(0);
+    }
+
+    /* Custom scrollbar hiding */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-[#f1f2f5] text-[#161823] min-h-screen flex justify-center selection:bg-rose-100">
+
+  <!-- Mobile Simulator Container -->
+  <main class="w-full max-w-[430px] min-h-screen bg-white relative shadow-2xl flex flex-col justify-between overflow-x-hidden border-x border-gray-100">
+
+    <!-- Top App Bar -->
+    <header class="sticky top-0 bg-white z-20 px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <button type="button" aria-label="Go back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all text-gray-800">
+        <svg class="w-6 h-6 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <h1 class="text-[17px] font-bold text-gray-900 tracking-tight">Get Coins</h1>
+
+      <button type="button" aria-label="History" class="w-9 h-9 -mr-1 rounded-full flex items-center justify-center hover:bg-gray-100 active:scale-95 transition-all text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 px-4 pt-3 pb-28 overflow-y-auto no-scrollbar">
+
+      <!-- Username Input Box -->
+      <div class="mb-3.5">
+        <div class="relative bg-[#f8f8f8] hover:bg-[#f3f4f6] focus-within:bg-white focus-within:ring-2 focus-within:ring-gray-300 border border-transparent focus-within:border-gray-300 rounded-lg transition-all">
+          <input 
+            type="text" 
+            id="usernameInput" 
+            placeholder="Your Username" 
+            value="" 
+            class="w-full bg-transparent px-3.5 py-3 text-[14px] text-gray-900 placeholder:text-gray-400 font-medium outline-none rounded-lg"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button id="clearUsernameBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+            <i class="fa-solid fa-circle-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Claim Coins Header -->
+      <div class="mb-3">
+        <h2 class="text-[14px] font-bold text-gray-900 tracking-tight">Claim coins:</h2>
+      </div>
+
+      <!-- Coin Packages Grid -->
+      <div id="coinPackagesGrid" class="grid grid-cols-2 gap-2.5 mb-5">
+        <!-- 70 Coins -->
+        <button type="button" data-coins="70" data-price="0.74" class="package-card relative border-2 border-[#f5a623] bg-amber-50/20 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">70</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">0.74</span>
+        </button>
+
+        <!-- 350 Coins -->
+        <button type="button" data-coins="350" data-price="3.7" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">350</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">3.7</span>
+        </button>
+
+        <!-- 700 Coins -->
+        <button type="button" data-coins="700" data-price="7.4" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">700</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">7.4</span>
+        </button>
+
+        <!-- 1,400 Coins -->
+        <button type="button" data-coins="1400" data-price="14.8" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">1,400</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">14.8</span>
+        </button>
+
+        <!-- 3,500 Coins -->
+        <button type="button" data-coins="3500" data-price="37" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">3,500</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">37</span>
+        </button>
+
+        <!-- 7,000 Coins -->
+        <button type="button" data-coins="7000" data-price="74" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">7,000</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">74</span>
+        </button>
+
+        <!-- 17,500 Coins -->
+        <button type="button" data-coins="17500" data-price="185" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[18px] font-bold text-gray-900">17,500</span>
+          </div>
+          <span class="text-[12px] text-gray-500 font-medium">185</span>
+        </button>
+
+        <!-- Custom Card -->
+        <button type="button" id="customPackageBtn" class="package-card relative border border-gray-200 bg-white hover:border-gray-300 rounded-xl p-3 flex flex-col items-center justify-center min-h-[96px] transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2 mb-1">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            <span class="text-[17px] font-bold text-gray-900">Custom</span>
+          </div>
+          <span class="text-[10px] text-gray-400 font-medium text-center">Large amount supported</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Bottom Sticky Checkout / Claim Bar -->
+    <div class="fixed bottom-0 max-w-[430px] w-full bg-white border-t border-gray-200 px-4 py-3.5 flex items-center justify-between z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+      <!-- Total Section -->
+      <div class="flex flex-col">
+        <div class="flex items-center gap-1">
+          <span class="text-[13px] text-gray-500 font-medium">Total</span>
+          <button type="button" id="totalHelpBtn" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <path stroke-width="2" stroke-linecap="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01"/>
+            </svg>
+          </button>
+        </div>
+        <div class="flex items-baseline gap-1 mt-0.5">
+          <span id="bottomTotalDisplay" class="text-[20px] font-bold text-gray-900 tracking-tight">0.74</span>
+        </div>
+      </div>
+
+      <!-- Claim Coins Action Button (Replaced Recharge) -->
+      <button 
+        type="button" 
+        id="mainClaimBtn" 
+        class="bg-[#FE2C55] hover:bg-[#ea2048] active:bg-[#d61940] text-white font-bold text-[15px] px-8 py-3 rounded-lg shadow-sm transition-all transform active:scale-95 flex items-center justify-center min-w-[150px]"
+      >
+        Claim coins
+      </button>
+    </div>
+
+    <!-- Custom Coins Bottom Sheet Modal -->
+    <div id="customModal" class="hidden fixed inset-0 z-50 flex flex-col justify-end">
+      <!-- Backdrop -->
+      <div id="modalBackdrop" class="fixed inset-0 bg-black/45 backdrop-blur-[2px] transition-opacity"></div>
+
+      <!-- Sheet Container -->
+      <div class="relative w-full max-w-[430px] mx-auto bg-white rounded-t-2xl shadow-2xl flex flex-col sheet-enter pb-3 z-10 overflow-hidden">
+        
+        <!-- Header -->
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between border-b border-gray-100">
+          <div class="w-6"></div>
+          <h3 class="text-[17px] font-bold text-gray-900">Custom</h3>
+          <button type="button" id="closeCustomModalBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 active:scale-95">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-5">
+          <!-- Coins Selector Label -->
+          <div class="flex items-center gap-1.5 text-gray-600 text-sm font-semibold mb-2">
+            <span>Number of Coins</span>
+            <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+          </div>
+
+          <!-- Number input box display with TikTok coin icon -->
+          <div class="flex items-center gap-3 px-4 py-3 bg-[#f8f8f8] border border-gray-200 rounded-xl mb-4">
+            <img src="https://i.postimg.cc/0yvSxMfJ/777.png" alt="coin" class="w-10 h-10 object-contain flex-shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/40x40/f59e0b/ffffff?text=%E2%97%8F';" />
+            
+            <div class="flex-1 font-bold text-[20px] text-gray-900 tracking-tight overflow-x-auto no-scrollbar flex items-center">
+              <span id="customCoinsValue" class="text-gray-900">1000000</span>
+              <span id="customCoinsPlaceholder" class="hidden text-gray-400 text-[15px] font-normal">30 - 2,500,000</span>
+            </div>
+          </div>
+
+          <!-- Total Display within Sheet -->
+          <div class="flex items-center justify-between py-2 px-1 mb-3">
+            <span class="text-gray-500 text-sm font-medium">Total</span>
+            <div class="flex items-baseline gap-1 text-gray-900 font-bold text-[20px]">
+              <span id="modalTotalAmount">10667</span>
+            </div>
+          </div>
+
+          <!-- Numeric Keypad (as seen in video 00:13) -->
+          <div class="grid grid-cols-4 gap-2 mb-4">
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="1">1</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="2">2</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="3">3</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold text-[18px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="backspace">
+              <i class="fa-solid fa-delete-left"></i>
+            </button>
+
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="4">4</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="5">5</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="6">6</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[17px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="000">000</button>
+
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="7">7</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="8">8</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="9">9</button>
+            <button type="button" class="keypad-btn bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-[20px] py-3.5 rounded-lg flex items-center justify-center transition-all" data-key="0">0</button>
+          </div>
+
+          <!-- Claim Coins Button inside modal -->
+          <button 
+            type="button" 
+            id="modalClaimCoinsBtn" 
+            class="w-full bg-[#FE2C55] hover:bg-[#ea2048] text-white font-bold text-[16px] py-3.5 rounded-lg shadow-sm active:scale-[0.98] transition-all"
+          >
+            Claim coins
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Processing Modal (TikTok dots animation with countdown) -->
+    <div id="processingModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6">
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-[1px]"></div>
+      
+      <div class="relative bg-white rounded-2xl p-7 max-w-[320px] w-full flex flex-col items-center text-center shadow-2xl z-10 animate-fade-in">
+        <!-- Dual dots spinner -->
+        <div class="tt-loader mb-4 mt-2">
+          <div class="tt-dot tt-dot-cyan"></div>
+          <div class="tt-dot tt-dot-pink"></div>
+        </div>
+
+        <h3 class="text-[17px] font-bold text-gray-900 mb-1">Processing your request</h3>
+        <p class="text-[13px] text-gray-500 mb-3">This could take few seconds</p>
+        
+        <!-- Timer (like 05:00 countdown in video) -->
+        <div id="processingTimer" class="font-mono text-sm font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+          04:58
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment / Claim Completed Modal (as in video 00:21) -->
+    <div id="completedModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6">
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-[1px]"></div>
+
+      <div class="relative bg-white rounded-2xl p-6 max-w-[340px] w-full flex flex-col items-center text-center shadow-2xl z-10">
+        <!-- Green animated checkmark -->
+        <div class="w-14 h-14 rounded-full bg-green-100 text-green-500 flex items-center justify-center text-2xl mb-4 shadow-inner">
+          <i class="fa-solid fa-check"></i>
+        </div>
+
+        <h3 class="text-[18px] font-bold text-gray-900 mb-2">Claim Completed</h3>
+        
+        <p id="completedDescription" class="text-[13.5px] text-gray-600 leading-snug mb-6">
+          You claimed <span class="font-bold text-gray-900" id="completedCoinsAmount">1,000,000</span> Coins. You can use Coins to send virtual Gifts.
+        </p>
+
+        <button 
+          type="button" 
+          id="goBackBtn" 
+          class="w-full bg-[#FE2C55] hover:bg-[#ea2048] active:bg-[#d61940] text-white font-bold text-[15px] py-3 rounded-lg shadow-sm transition-all active:scale-[0.98]"
+        >
+          Go back
+        </button>
+      </div>
+    </div>
+
+    <!-- Info Tooltip Modal (For Help Icon) -->
+    <div id="infoModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-6">
+      <div class="fixed inset-0 bg-black/40" id="closeInfoBackdrop"></div>
+      <div class="relative bg-white rounded-2xl p-5 max-w-[320px] w-full z-10 shadow-2xl">
+        <h4 class="font-bold text-gray-900 text-base mb-2">About Coin Claims</h4>
+        <p class="text-xs text-gray-600 leading-relaxed mb-4">
+          Coins claimed through the web store are instantly credited to your linked profile and can be gifted across live streams.
+        </p>
+        <button id="closeInfoBtn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 rounded-lg text-sm">
+          Got it
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // State management
+    let selectedCoins = 70;
+    let selectedPrice = 0.74;
+    let customCoinsInput = '1000000';
+    let isCustomSelected = false;
+    let countdownInterval = null;
+
+    // Elements
+    const usernameInput = document.getElementById('usernameInput');
+    const clearUsernameBtn = document.getElementById('clearUsernameBtn');
+    const bottomTotalDisplay = document.getElementById('bottomTotalDisplay');
+    const mainClaimBtn = document.getElementById('mainClaimBtn');
+    const coinPackagesGrid = document.getElementById('coinPackagesGrid');
+    const customPackageBtn = document.getElementById('customPackageBtn');
+    
+    // Custom Modal Elements
+    const customModal = document.getElementById('customModal');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const closeCustomModalBtn = document.getElementById('closeCustomModalBtn');
+    const customCoinsValue = document.getElementById('customCoinsValue');
+    const customCoinsPlaceholder = document.getElementById('customCoinsPlaceholder');
+    const modalTotalAmount = document.getElementById('modalTotalAmount');
+    const modalClaimCoinsBtn = document.getElementById('modalClaimCoinsBtn');
+
+    // Processing & Complete Modals
+    const processingModal = document.getElementById('processingModal');
+    const processingTimer = document.getElementById('processingTimer');
+    const completedModal = document.getElementById('completedModal');
+    const completedCoinsAmount = document.getElementById('completedCoinsAmount');
+    const goBackBtn = document.getElementById('goBackBtn');
+
+    // Info Modal
+    const totalHelpBtn = document.getElementById('totalHelpBtn');
+    const infoModal = document.getElementById('infoModal');
+    const closeInfoBackdrop = document.getElementById('closeInfoBackdrop');
+    const closeInfoBtn = document.getElementById('closeInfoBtn');
+
+    // Helper: calculate total for custom coins (matches rate ~ $0.010667 per coin, 1,000,000 coins = $10,667)
+    function calculateCustomPrice(coins) {
+      if (!coins || coins <= 0) return 0;
+      return Math.round(coins * 0.010667);
+    }
+
+    // Format number with commas
+    function formatNumber(num) {
+      return Number(num).toLocaleString('en-US');
+    }
+
+    // Update bottom checkout bar
+    function updateBottomBar() {
+      if (isCustomSelected) {
+        const coins = parseInt(customCoinsInput, 10) || 0;
+        const total = calculateCustomPrice(coins);
+        bottomTotalDisplay.textContent = formatNumber(total);
+      } else {
+        bottomTotalDisplay.textContent = selectedPrice.toFixed(2);
+      }
+    }
+
+    // Package card selection highlight
+    function selectCard(cardElement) {
+      // Clear highlight on all cards
+      document.querySelectorAll('.package-card').forEach(card => {
+        card.classList.remove('border-2', 'border-[#f5a623]', 'bg-amber-50/20');
+        card.classList.add('border-gray-200', 'bg-white');
+      });
+
+      // Highlight target card
+      cardElement.classList.remove('border-gray-200', 'bg-white');
+      cardElement.classList.add('border-2', 'border-[#f5a623]', 'bg-amber-50/20');
+    }
+
+    // Setup packages click
+    document.querySelectorAll('.package-card').forEach(card => {
+      if (card.id === 'customPackageBtn') return;
+
+      card.addEventListener('click', () => {
+        isCustomSelected = false;
+        selectedCoins = parseInt(card.dataset.coins, 10);
+        selectedPrice = parseFloat(card.dataset.price);
+        selectCard(card);
+        updateBottomBar();
+      });
+    });
+
+    // Custom package card click
+    customPackageBtn.addEventListener('click', () => {
+      isCustomSelected = true;
+      selectCard(customPackageBtn);
+      openCustomModal();
+    });
+
+    // Custom Modal Controls
+    function openCustomModal() {
+      customModal.classList.remove('hidden');
+      updateCustomModalDisplay();
+      setTimeout(() => {
+        customModal.querySelector('.sheet-enter')?.classList.add('sheet-enter-active');
+      }, 10);
+    }
+
+    function closeCustomModal() {
+      const sheet = customModal.querySelector('.sheet-enter');
+      if (sheet) {
+        sheet.classList.remove('sheet-enter-active');
+      }
+      setTimeout(() => {
+        customModal.classList.add('hidden');
+      }, 250);
+      updateBottomBar();
+    }
+
+    modalBackdrop.addEventListener('click', closeCustomModal);
+    closeCustomModalBtn.addEventListener('click', closeCustomModal);
+
+    function updateCustomModalDisplay() {
+      if (customCoinsInput.length === 0) {
+        customCoinsValue.textContent = '';
+        customCoinsPlaceholder.classList.remove('hidden');
+        modalTotalAmount.textContent = '0';
+      } else {
+        customCoinsPlaceholder.classList.add('hidden');
+        customCoinsValue.textContent = formatNumber(customCoinsInput);
+        const coins = parseInt(customCoinsInput, 10) || 0;
+        const total = calculateCustomPrice(coins);
+        modalTotalAmount.textContent = formatNumber(total);
+      }
+    }
+
+    // Keypad Logic
+    document.querySelectorAll('.keypad-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const key = button.getAttribute('data-key');
+        
+        if (key === 'backspace') {
+          customCoinsInput = customCoinsInput.slice(0, -1);
+        } else if (key === '000') {
+          if (customCoinsInput.length > 0 && customCoinsInput.length <= 6) {
+            customCoinsInput += '000';
+          }
+        } else {
+          // Prevent leading zeros
+          if (customCoinsInput === '0') {
+            customCoinsInput = key;
+          } else if (customCoinsInput.length < 8) {
+            customCoinsInput += key;
+          }
+        }
+
+        // Cap at 2,500,000 as per TikTok limit in video
+        const num = parseInt(customCoinsInput, 10) || 0;
+        if (num > 2500000) {
+          customCoinsInput = '2500000';
+        }
+
+        updateCustomModalDisplay();
+      });
+    });
+
+    // Trigger Claim Workflow
+    function startClaimWorkflow() {
+      const username = usernameInput.value.trim() || 'user.guest';
+      const coinsToClaim = isCustomSelected 
+        ? (parseInt(customCoinsInput, 10) || 30) 
+        : selectedCoins;
+
+      // Close custom modal if open
+      if (!customModal.classList.contains('hidden')) {
+        closeCustomModal();
+      }
+
+      // Show processing modal
+      processingModal.classList.remove('hidden');
+
+      // Countdown effect from 05:00
+      let totalSeconds = 300;
+      clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        totalSeconds--;
+        if (totalSeconds < 0) totalSeconds = 0;
+        const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const secs = String(totalSeconds % 60).padStart(2, '0');
+        processingTimer.textContent = `${mins}:${secs}`;
+      }, 1000);
+
+      // Simulate network request (2.5 seconds)
+      setTimeout(() => {
+        clearInterval(countdownInterval);
+        processingModal.classList.add('hidden');
+
+        // Populate success modal
+        completedCoinsAmount.textContent = formatNumber(coinsToClaim);
+        completedModal.classList.remove('hidden');
+      }, 2400);
+    }
+
+    // Button event listeners
+    mainClaimBtn.addEventListener('click', startClaimWorkflow);
+    modalClaimCoinsBtn.addEventListener('click', startClaimWorkflow);
+
+    goBackBtn.addEventListener('click', () => {
+      completedModal.classList.add('hidden');
+    });
+
+    // Username input interactions
+    usernameInput.addEventListener('input', (e) => {
+      if (e.target.value.length > 0) {
+        clearUsernameBtn.classList.remove('hidden');
+      } else {
+        clearUsernameBtn.classList.add('hidden');
+      }
+    });
+
+    clearUsernameBtn.addEventListener('click', () => {
+      usernameInput.value = '';
+      clearUsernameBtn.classList.add('hidden');
+      usernameInput.focus();
+    });
+
+    // Help Dialog
+    totalHelpBtn.addEventListener('click', () => {
+      infoModal.classList.remove('hidden');
+    });
+    closeInfoBackdrop.addEventListener('click', () => {
+      infoModal.classList.add('hidden');
+    });
+    closeInfoBtn.addEventListener('click', () => {
+      infoModal.classList.add('hidden');
+    });
+
+    // Initialize with default values
+    updateBottomBar();
+  </script>
+</body>
+</html>
